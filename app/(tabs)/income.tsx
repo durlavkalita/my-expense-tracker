@@ -1,22 +1,27 @@
 import { View, Text, FlatList, Image } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { dummyData, icons } from "@/constants";
+import { useSQLiteContext } from "expo-sqlite";
 
 export default function income() {
+  const db = useSQLiteContext();
+  const [incomes, setIncomes] = useState<Income[]>([]);
+
+  useEffect(() => {
+    async function setup() {
+      const result = await db.getAllAsync<Income>("SELECT * FROM incomes");
+      setIncomes(result);
+    }
+    setup();
+  }, []);
+
   const renderSeparator = () => (
     <View className="border-b border-gray-300 my-1" />
   );
   return (
     <View className="mx-6">
-      {/* Table Headers */}
-      {/* <View className="flex-row justify-between bg-blue-600 p-3">
-        <Text className="text-white font-bold text-lg">Category</Text>
-        <Text className="text-white font-bold text-lg">Amount</Text>
-        <Text className="text-white font-bold text-lg">Date</Text>
-      </View> */}
-      {/* Expense List */}
       <FlatList
-        data={dummyData.incomeData}
+        data={income.length > 0 ? incomes : dummyData.incomeData}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => <RenderItem item={item}></RenderItem>}
