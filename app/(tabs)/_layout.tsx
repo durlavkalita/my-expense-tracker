@@ -12,12 +12,12 @@ const TabIcon = ({
 }) => (
   <View
     className={`flex flex-row justify-center items-center rounded-full ${
-      focused ? "bg-general-300" : ""
+      focused ? "bg-red-300" : ""
     }`}
   >
     <View
       className={`rounded-full w-12 h-12 items-center justify-center ${
-        focused ? "bg-primary-500" : ""
+        focused ? "bg-green-500" : ""
       }`}
     >
       <Image
@@ -33,7 +33,7 @@ const TabIcon = ({
 export default function TabLayout() {
   return (
     <Tabs
-      initialRouteName="index"
+      initialRouteName="expense"
       screenOptions={{
         tabBarActiveTintColor: "white",
         tabBarInactiveTintColor: "white",
