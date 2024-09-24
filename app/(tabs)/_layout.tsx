@@ -1,34 +1,82 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { icons } from "@/constants";
+import { Tabs } from "expo-router";
+import React from "react";
+import { ImageSourcePropType, View, Image } from "react-native";
 
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+const TabIcon = ({
+  source,
+  focused,
+}: {
+  source: ImageSourcePropType;
+  focused: boolean;
+}) => (
+  <View
+    className={`flex flex-row justify-center items-center rounded-full ${
+      focused ? "bg-general-300" : ""
+    }`}
+  >
+    <View
+      className={`rounded-full w-12 h-12 items-center justify-center ${
+        focused ? "bg-primary-500" : ""
+      }`}
+    >
+      <Image
+        source={source}
+        tintColor="white"
+        resizeMode="contain"
+        className="w-7 h-7"
+      />
+    </View>
+  </View>
+);
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
+      initialRouteName="index"
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-      }}>
+        tabBarActiveTintColor: "white",
+        tabBarInactiveTintColor: "white",
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: "#333333",
+          paddingBottom: 0, // ios only
+          overflow: "hidden",
+          marginHorizontal: 0,
+          marginBottom: 0,
+          height: 72,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexDirection: "row",
+          position: "absolute",
+        },
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="income"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+          title: "Income",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon source={icons.income} focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="index"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
+          title: "Home",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon source={icons.add} focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="expense"
+        options={{
+          title: "Expense",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon source={icons.expenses} focused={focused} />
           ),
         }}
       />
