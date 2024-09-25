@@ -33,7 +33,7 @@ const TabIcon = ({
 export default function TabLayout() {
   return (
     <Tabs
-      initialRouteName="expense"
+      initialRouteName="index"
       screenOptions={{
         tabBarActiveTintColor: "white",
         tabBarInactiveTintColor: "white",
@@ -65,9 +65,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          headerShown: false,
           title: "Home",
           tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.add} focused={focused} />
+            <TabIcon source={icons.home} focused={focused} />
           ),
         }}
       />

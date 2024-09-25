@@ -2,6 +2,7 @@ import { View, Text, FlatList, Image } from "react-native";
 import React, { useEffect, useState } from "react";
 import { dummyData, icons } from "@/constants";
 import { useSQLiteContext } from "expo-sqlite";
+import { getCurrentMonthForQuery } from "@/lib/utility";
 
 export default function income() {
   const db = useSQLiteContext();
@@ -9,7 +10,9 @@ export default function income() {
 
   useEffect(() => {
     async function setup() {
-      const result = await db.getAllAsync<Income>("SELECT * FROM incomes");
+      const result = await db.getAllAsync<Income>(
+        `SELECT * FROM incomes WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}'`
+      );
       setIncomes(result);
     }
     setup();
@@ -21,7 +24,7 @@ export default function income() {
   return (
     <View className="mx-6">
       <FlatList
-        data={income.length > 0 ? incomes : dummyData.incomeData}
+        data={incomes.length > 0 ? incomes : dummyData.incomeData}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => <RenderItem item={item}></RenderItem>}
