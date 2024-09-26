@@ -28,6 +28,11 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="transaction" options={{ title: "Add" }} />
+        <Stack.Screen
+          name="expense/[id]"
+          options={{ title: "Expense Record" }}
+        />
+        <Stack.Screen name="income/[id]" options={{ title: "Income Record" }} />
         <Stack.Screen name="+not-found" />
       </Stack>
     </SQLiteProvider>
