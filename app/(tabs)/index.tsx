@@ -28,10 +28,10 @@ export default function HomeScreen() {
   useEffect(() => {
     async function setup() {
       const result = await db.getAllAsync<Income>(
-        `SELECT * FROM incomes WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}'`
+        `SELECT * FROM incomes WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}' ORDER BY date DESC`
       );
       const result1 = await db.getAllAsync<Expense>(
-        `SELECT * FROM expenses WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}'`
+        `SELECT * FROM expenses WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}' ORDER BY date DESC`
       );
       setIncomes(result);
       setExpenses(result1);

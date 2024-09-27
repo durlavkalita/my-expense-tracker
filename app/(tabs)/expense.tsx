@@ -1,5 +1,12 @@
-import { View, Text, FlatList, Image, TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
 import { dummyData, icons } from "@/constants";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
@@ -7,10 +14,25 @@ import { router } from "expo-router";
 export default function expense() {
   const db = useSQLiteContext();
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+
+    fetchDataFromDB();
+
+    setRefreshing(false);
+  }, []);
+
+  const fetchDataFromDB = async () => {
+    const result = await db.getAllAsync<Expense>(
+      "SELECT * FROM expenses ORDER BY date DESC"
+    );
+    setExpenses(result);
+  };
   useEffect(() => {
     async function setup() {
-      const result = await db.getAllAsync<Expense>("SELECT * FROM expenses");
-      setExpenses(result);
+      fetchDataFromDB();
     }
     setup();
   }, []);
@@ -25,6 +47,9 @@ export default function expense() {
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => <RenderItem item={item}></RenderItem>}
         ItemSeparatorComponent={renderSeparator}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
     </View>
   );

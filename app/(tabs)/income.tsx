@@ -1,5 +1,12 @@
-import { View, Text, FlatList, Image, TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
 import { dummyData, icons } from "@/constants";
 import { useSQLiteContext } from "expo-sqlite";
 import { getCurrentMonthForQuery } from "@/lib/utility";
@@ -8,13 +15,26 @@ import { router } from "expo-router";
 export default function income() {
   const db = useSQLiteContext();
   const [incomes, setIncomes] = useState<Income[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+
+    fetchDataFromDB();
+
+    setRefreshing(false);
+  }, []);
+
+  const fetchDataFromDB = async () => {
+    const result = await db.getAllAsync<Income>(
+      "SELECT * FROM incomes ORDER BY date DESC"
+    );
+    setIncomes(result);
+  };
 
   useEffect(() => {
     async function setup() {
-      const result = await db.getAllAsync<Income>(
-        `SELECT * FROM incomes WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}'`
-      );
-      setIncomes(result);
+      fetchDataFromDB();
     }
     setup();
   }, []);
@@ -30,6 +50,9 @@ export default function income() {
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => <RenderItem item={item}></RenderItem>}
         ItemSeparatorComponent={renderSeparator}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
     </View>
   );

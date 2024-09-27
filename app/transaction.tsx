@@ -1,8 +1,7 @@
 import {
   View,
   Text,
-  TouchableWithoutFeedback,
-  Keyboard,
+  ScrollView,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -15,7 +14,6 @@ import {
 import React, { useState } from "react";
 import { useSQLiteContext } from "expo-sqlite";
 import { getCurrentDate } from "@/lib/utility";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { expenseCategory, incomeSource } from "@/constants";
 import { router } from "expo-router";
 
@@ -75,7 +73,7 @@ export default function Transaction() {
     } catch (error) {
       console.log(error);
       Alert.alert("Error in storing.");
-      router.back();
+      router.push("/(tabs)/");
     }
   }
 
@@ -107,33 +105,35 @@ export default function Transaction() {
   );
 
   return (
-    <SafeAreaView>
-      <View className="flex flex-row justify-around items-center">
-        <TouchableOpacity onPress={() => setTransactionType("expense")}>
-          <Text
-            className={`px-4 py-2 rounded-md font-semibold text-lg ${
-              transactionType == "expense"
-                ? "bg-green-400 text-white"
-                : "bg-gray-300 text-black"
-            }`}
-          >
-            Expense
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setTransactionType("income")}>
-          <Text
-            className={`px-4 py-2 rounded-md font-semibold text-lg ${
-              transactionType == "income"
-                ? "bg-green-400 text-white"
-                : "bg-gray-300 text-black"
-            }`}
-          >
-            Income
-          </Text>
-        </TouchableOpacity>
-      </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView className="my-8">
+        <View className="flex flex-row justify-around items-center">
+          <TouchableOpacity onPress={() => setTransactionType("expense")}>
+            <Text
+              className={`px-4 py-2 rounded-md font-semibold text-lg ${
+                transactionType == "expense"
+                  ? "bg-green-400 text-white"
+                  : "bg-gray-300 text-black"
+              }`}
+            >
+              Expense
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setTransactionType("income")}>
+            <Text
+              className={`px-4 py-2 rounded-md font-semibold text-lg ${
+                transactionType == "income"
+                  ? "bg-green-400 text-white"
+                  : "bg-gray-300 text-black"
+              }`}
+            >
+              Income
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-      <TouchableOpacity onPress={Keyboard.dismiss}>
         <View className="mt-4 mx-4">
           <Text className={`text-lg mb-1`}>Amount</Text>
           <TextInput
@@ -143,24 +143,22 @@ export default function Transaction() {
             value={amount}
           />
         </View>
-      </TouchableOpacity>
 
-      <View className="mx-4 mt-4">
-        <Text className="text-lg mb-2">
-          {transactionType == "expense" ? "Category" : "Source"}
-        </Text>
-        <FlatList
-          horizontal={true}
-          data={transactionType == "expense" ? expenseCategory : incomeSource}
-          keyExtractor={(item) => item.name}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) =>
-            showCategory({ name: item.name, icon: item.icon })
-          }
-        />
-      </View>
+        <View className="mx-4 mt-4">
+          <Text className="text-lg mb-2">
+            {transactionType == "expense" ? "Category" : "Source"}
+          </Text>
+          <FlatList
+            horizontal={true}
+            data={transactionType == "expense" ? expenseCategory : incomeSource}
+            keyExtractor={(item) => item.name}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) =>
+              showCategory({ name: item.name, icon: item.icon })
+            }
+          />
+        </View>
 
-      <TouchableOpacity onPress={Keyboard.dismiss}>
         <View className="mt-4 mx-4">
           <Text className={`text-lg mb-1`}>Description</Text>
 
@@ -172,13 +170,13 @@ export default function Transaction() {
             value={description}
           />
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        className="bg-green-400 rounded-full mx-4 p-2 items-center mt-24"
-        onPress={handleSave}
-      >
-        <Text className="text-white font-bold text-2xl">Save</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+        <TouchableOpacity
+          className="bg-green-400 rounded-full mx-4 p-2 items-center mt-24"
+          onPress={handleSave}
+        >
+          <Text className="text-white font-bold text-2xl">Save</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

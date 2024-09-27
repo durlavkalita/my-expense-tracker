@@ -9,6 +9,9 @@ import {
   FlatList,
   ImageSourcePropType,
   Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useSQLiteContext } from "expo-sqlite";
@@ -38,7 +41,7 @@ export default function SingleExpense() {
   async function handleDelete() {
     const r = await db.runAsync(`DELETE FROM incomes WHERE id = ${uid}`);
     console.log(r);
-    router.back();
+    router.push("/(tabs)/income");
   }
   async function handleUpdate() {
     if (category == "") {
@@ -61,7 +64,7 @@ export default function SingleExpense() {
       uid
     );
     console.log(r);
-    router.back();
+    router.push("/(tabs)/income");
   }
   function handleAmountChanged(text: any) {
     const numericValue = text.replace(/[^0-9]/g, "");
@@ -99,59 +102,63 @@ export default function SingleExpense() {
     </View>
   );
   return (
-    <SafeAreaView>
-      <TouchableOpacity onPress={Keyboard.dismiss}>
-        <View className="mt-4 mx-4">
-          <Text className={`text-lg mb-1`}>Amount</Text>
-          <TextInput
-            keyboardType="numeric"
-            className={`rounded-full p-4 text-[15px] w-full text-left border-gray-300 border-2`}
-            onChangeText={handleAmountChanged}
-            value={amount}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView className="my-8">
+        <TouchableOpacity onPress={Keyboard.dismiss}>
+          <View className="mt-4 mx-4">
+            <Text className={`text-lg mb-1`}>Amount</Text>
+            <TextInput
+              keyboardType="numeric"
+              className={`rounded-full p-4 text-[15px] w-full text-left border-gray-300 border-2`}
+              onChangeText={handleAmountChanged}
+              value={amount}
+            />
+          </View>
+        </TouchableOpacity>
+
+        <View className="mx-4 mt-4">
+          <Text className="text-lg mb-2">Category</Text>
+          <FlatList
+            horizontal={true}
+            data={incomeSource}
+            keyExtractor={(item) => item.name}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) =>
+              showCategory({ name: item.name, icon: item.icon })
+            }
           />
         </View>
-      </TouchableOpacity>
 
-      <View className="mx-4 mt-4">
-        <Text className="text-lg mb-2">Category</Text>
-        <FlatList
-          horizontal={true}
-          data={incomeSource}
-          keyExtractor={(item) => item.name}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) =>
-            showCategory({ name: item.name, icon: item.icon })
-          }
-        />
-      </View>
+        <TouchableOpacity onPress={Keyboard.dismiss}>
+          <View className="mt-4 mx-4">
+            <Text className={`text-lg mb-1`}>Description</Text>
 
-      <TouchableOpacity onPress={Keyboard.dismiss}>
-        <View className="mt-4 mx-4">
-          <Text className={`text-lg mb-1`}>Description</Text>
-
-          <TextInput
-            className={`rounded-full p-4 text-[15px] w-full text-left border-gray-300 border-2`}
-            onChangeText={(value) => {
-              setDescription(value);
-            }}
-            value={description}
-          />
+            <TextInput
+              className={`rounded-full p-4 text-[15px] w-full text-left border-gray-300 border-2`}
+              onChangeText={(value) => {
+                setDescription(value);
+              }}
+              value={description}
+            />
+          </View>
+        </TouchableOpacity>
+        <View className="flex flex-row justify-between mx-4 mt-24">
+          <TouchableOpacity
+            className="bg-red-400 rounded-full p-2 items-center w-1/2"
+            onPress={handleDelete}
+          >
+            <Text className="text-white font-bold text-2xl">Delete</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="bg-green-400 rounded-full p-2 items-center w-1/2"
+            onPress={handleUpdate}
+          >
+            <Text className="text-white font-bold text-2xl">Update</Text>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-      <View className="flex flex-row justify-between mx-4 mt-24">
-        <TouchableOpacity
-          className="bg-red-400 rounded-full p-2 items-center w-1/2"
-          onPress={handleDelete}
-        >
-          <Text className="text-white font-bold text-2xl">Delete</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          className="bg-green-400 rounded-full p-2 items-center w-1/2"
-          onPress={handleUpdate}
-        >
-          <Text className="text-white font-bold text-2xl">Update</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
