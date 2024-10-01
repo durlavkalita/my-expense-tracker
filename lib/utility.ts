@@ -37,7 +37,7 @@ export const humanReadableAmount = (amount: Number) => {
 
 export const getCurrentDate = () => {
   const date = new Date();
-  const day = date.getDate();
+  const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
   const month = getCurrentMonthForQuery();
   const year = date.getFullYear();
   return `${year}-${month}-${day}`;

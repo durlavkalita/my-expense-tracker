@@ -1,6 +1,7 @@
 import ProgressBar from "@/components/ProgressBar";
 import { icons } from "@/constants";
 import {
+  getCurrentDate,
   getCurrentMonthForQuery,
   getCurrentMonthYear,
   humanReadableAmount,
@@ -8,7 +9,7 @@ import {
 import { router } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Text,
   TouchableOpacity,
@@ -16,6 +17,7 @@ import {
   Image,
   FlatList,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -25,34 +27,49 @@ export default function HomeScreen() {
   const [expenses, setExpenses] = useState<Expense[]>();
   const [monthlyIncome, setMonthlyIncome] = useState(0);
   const [monthlyExpense, setMonthlyExpense] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+
+    fetchDataFromDB();
+
+    setRefreshing(false);
+  }, []);
+  const fetchDataFromDB = async () => {
+    const result = await db.getAllAsync<Income>(
+      `SELECT * FROM incomes WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}' ORDER BY date DESC`
+    );
+    const result1 = await db.getAllAsync<Expense>(
+      `SELECT * FROM expenses WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}' ORDER BY date DESC`
+    );
+    setIncomes(result);
+    setExpenses(result1);
+    let totalIncome = 0;
+    let totalExpense = 0;
+    for (let index = 0; index < result.length; index++) {
+      const element = result[index];
+      totalIncome = totalIncome + Number(element.amount);
+    }
+    setMonthlyIncome(totalIncome);
+    for (let index = 0; index < result1.length; index++) {
+      const element = result1[index];
+      totalExpense += Number(element.amount);
+    }
+    setMonthlyExpense(totalExpense);
+  };
   useEffect(() => {
     async function setup() {
-      const result = await db.getAllAsync<Income>(
-        `SELECT * FROM incomes WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}' ORDER BY date DESC`
-      );
-      const result1 = await db.getAllAsync<Expense>(
-        `SELECT * FROM expenses WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}' ORDER BY date DESC`
-      );
-      setIncomes(result);
-      setExpenses(result1);
-      let totalIncome = 0;
-      let totalExpense = 0;
-      for (let index = 0; index < result.length; index++) {
-        const element = result[index];
-        totalIncome = totalIncome + Number(element.amount);
-      }
-      setMonthlyIncome(totalIncome);
-      for (let index = 0; index < result1.length; index++) {
-        const element = result1[index];
-        totalExpense += Number(element.amount);
-      }
-      setMonthlyExpense(totalExpense);
+      fetchDataFromDB();
     }
     setup();
   }, []);
   return (
     <SafeAreaView>
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View className="h-60 bg-purple-400 py-2 px-4">
           <Text className="text-white font-semibold text-xl py-2 self-center">{`${getCurrentMonthYear()} budget`}</Text>
           <View className="flex flex-row items-end">
