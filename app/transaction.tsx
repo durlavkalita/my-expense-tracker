@@ -105,35 +105,34 @@ export default function Transaction() {
   );
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView className="my-8">
-        <View className="flex flex-row justify-around items-center">
-          <TouchableOpacity onPress={() => setTransactionType("expense")}>
-            <Text
-              className={`px-4 py-2 rounded-md font-semibold text-lg ${
-                transactionType == "expense"
-                  ? "bg-green-400 text-white"
-                  : "bg-gray-300 text-black"
-              }`}
-            >
-              Expense
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setTransactionType("income")}>
-            <Text
-              className={`px-4 py-2 rounded-md font-semibold text-lg ${
-                transactionType == "income"
-                  ? "bg-green-400 text-white"
-                  : "bg-gray-300 text-black"
-              }`}
-            >
-              Income
-            </Text>
-          </TouchableOpacity>
-        </View>
-
+    <ScrollView className="my-8">
+      <View className="flex flex-row justify-around items-center">
+        <TouchableOpacity onPress={() => setTransactionType("expense")}>
+          <Text
+            className={`px-4 py-2 rounded-md font-semibold text-lg ${
+              transactionType == "expense"
+                ? "bg-green-400 text-white"
+                : "bg-gray-300 text-black"
+            }`}
+          >
+            Expense
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setTransactionType("income")}>
+          <Text
+            className={`px-4 py-2 rounded-md font-semibold text-lg ${
+              transactionType == "income"
+                ? "bg-green-400 text-white"
+                : "bg-gray-300 text-black"
+            }`}
+          >
+            Income
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View className="mt-4 mx-4">
           <Text className={`text-lg mb-1`}>Amount</Text>
           <TextInput
@@ -143,25 +142,26 @@ export default function Transaction() {
             value={amount}
           />
         </View>
-
-        <View className="mx-4 mt-4">
-          <Text className="text-lg mb-2">
-            {transactionType == "expense" ? "Category" : "Source"}
-          </Text>
-          <FlatList
-            horizontal={true}
-            data={transactionType == "expense" ? expenseCategory : incomeSource}
-            keyExtractor={(item) => item.name}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) =>
-              showCategory({ name: item.name, icon: item.icon })
-            }
-          />
-        </View>
-
+      </KeyboardAvoidingView>
+      <View className="mx-4 mt-4">
+        <Text className="text-lg mb-2">
+          {transactionType == "expense" ? "Category" : "Source"}
+        </Text>
+        <FlatList
+          horizontal={true}
+          data={transactionType == "expense" ? expenseCategory : incomeSource}
+          keyExtractor={(item) => item.name}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) =>
+            showCategory({ name: item.name, icon: item.icon })
+          }
+        />
+      </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View className="mt-4 mx-4">
           <Text className={`text-lg mb-1`}>Description</Text>
-
           <TextInput
             className={`rounded-full p-4 text-[15px] w-full text-left border-gray-300 border-2`}
             onChangeText={(value) => {
@@ -170,13 +170,13 @@ export default function Transaction() {
             value={description}
           />
         </View>
-        <TouchableOpacity
-          className="bg-green-400 rounded-full mx-4 p-2 items-center mt-24"
-          onPress={handleSave}
-        >
-          <Text className="text-white font-bold text-2xl">Save</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+      <TouchableOpacity
+        className="bg-green-400 rounded-full mx-4 p-2 items-center mt-24"
+        onPress={handleSave}
+      >
+        <Text className="text-white font-bold text-2xl">Save</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
