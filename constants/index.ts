@@ -33,6 +33,7 @@ import pension from "@/assets/icons/retirement.png";
 import royalties from "@/assets/icons/customer-royalty.png";
 import refunds from "@/assets/icons/refund.png";
 import salary from "@/assets/icons/salary.png";
+import noResult from "@/assets/images/no-result.png";
 
 export const icons = {
   income,
@@ -44,6 +45,10 @@ export const icons = {
   upArrow,
   downArrow,
   home,
+};
+
+export const images = {
+  noResult,
 };
 
 const incomeData = [
@@ -143,14 +148,14 @@ export const dummyData = {
 
 export const expenseCategory = [
   { name: "Groceries", icon: grocery },
-  { name: "Rent", icon: rent },
-  { name: "Utilities", icon: utilities },
+  { name: "Dining", icon: dining },
   { name: "Transportation", icon: transportation },
+  { name: "Entertainment", icon: entertainment },
+  { name: "Utilities", icon: utilities },
+  { name: "Shopping", icon: shopping },
+  { name: "Rent", icon: rent },
   { name: "Insurance", icon: insurance },
   { name: "Healthcare", icon: healthcare },
-  { name: "Dining", icon: dining },
-  { name: "Entertainment", icon: entertainment },
-  { name: "Shopping", icon: shopping },
   { name: "Education", icon: education },
   { name: "Debt Payments", icon: debt },
   { name: "Savings", icon: savings },

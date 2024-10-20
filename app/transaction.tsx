@@ -23,19 +23,29 @@ export default function Transaction() {
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  const date = getCurrentDate();
+  const [paymentMethod, setPaymentMethod] = useState<
+    "cash" | "upi" | "credit_purchase" | "credit_payment"
+  >("cash");
 
   function handleAmountChanged(text: any) {
     const numericValue = text.replace(/[^0-9]/g, "");
     setAmount(numericValue);
   }
 
-  function handleCategorySelect(name: string) {
-    setCategory(name);
+  function getCurrentDateTimeISO() {
+    const now = new Date();
+    return now.toISOString().slice(0, 19); // 'YYYY-MM-DDTHH:MM:SS'
   }
 
   async function handleSave() {
-    // console.log(transactionType, category, amount, date, description);
+    console.log(
+      transactionType,
+      paymentMethod,
+      category,
+      amount,
+      getCurrentDateTimeISO(),
+      description
+    );
     if (category == "") {
       Alert.alert("Select a category or source.");
       return;
@@ -51,11 +61,12 @@ export default function Transaction() {
     try {
       if (transactionType == "expense") {
         const r = await db.runAsync(
-          "INSERT INTO expenses (category, amount, date, description) VALUES (?, ?, ?, ?)",
+          "INSERT INTO expenses (category, amount, date, description, payment_method) VALUES (?, ?, ?, ?, ?)",
           category,
           amount,
-          date,
-          description
+          getCurrentDateTimeISO(),
+          description,
+          paymentMethod
         );
         console.log(r);
         router.back();
@@ -64,7 +75,7 @@ export default function Transaction() {
           "INSERT INTO incomes (source, amount, date, description) VALUES (?, ?, ?, ?)",
           category,
           amount,
-          date,
+          getCurrentDateTimeISO(),
           description
         );
         console.log(r);
@@ -91,7 +102,10 @@ export default function Transaction() {
     >
       <TouchableOpacity
         className="items-center justify-center"
-        onPress={() => handleCategorySelect(name)}
+        onPress={() => {
+          setCategory(name);
+          setDescription(name);
+        }}
       >
         <Image
           source={icon}
@@ -106,7 +120,8 @@ export default function Transaction() {
 
   return (
     <ScrollView className="my-8">
-      <View className="flex flex-row justify-around items-center">
+      {/* expense or income */}
+      <View className="flex flex-row justify-around items-center mb-4">
         <TouchableOpacity onPress={() => setTransactionType("expense")}>
           <Text
             className={`px-4 py-2 rounded-md font-semibold text-lg ${
@@ -130,6 +145,91 @@ export default function Transaction() {
           </Text>
         </TouchableOpacity>
       </View>
+      {/* payment medium */}
+      {transactionType == "expense" ? (
+        <View className="mx-4 mt-4">
+          <Text className="text-lg mb-2">Method</Text>
+          <View className="flex flex-row items-center justify-between">
+            <TouchableOpacity
+              onPress={() => {
+                setPaymentMethod("cash");
+              }}
+              className="flex flex-row items-center"
+            >
+              <View
+                className={`rounded-full p-2 border-2 ${
+                  paymentMethod == "cash"
+                    ? "bg-green-500 border-green-500"
+                    : "border-green-900"
+                }`}
+              ></View>
+              <Text className="text-gray-700 text-lg ml-1">Cash</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setPaymentMethod("upi");
+              }}
+              className="flex flex-row items-center"
+            >
+              <View
+                className={`rounded-full p-2 border-2 ${
+                  paymentMethod == "upi"
+                    ? "bg-green-500 border-green-500"
+                    : "border-green-900"
+                }`}
+              ></View>
+              <Text className="text-gray-700 text-lg ml-1">UPI</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setPaymentMethod("credit_purchase");
+              }}
+              className="flex flex-row items-center"
+            >
+              <View
+                className={`rounded-full p-2 border-2 ${
+                  paymentMethod == "credit_purchase"
+                    ? "bg-green-500 border-green-500"
+                    : "border-green-900"
+                }`}
+              ></View>
+              <View className="ml-1">
+                <Text className="text-gray-700 font-medium text-sm">
+                  Credit
+                </Text>
+                <Text className="text-gray-700 font-medium text-sm">
+                  Purchase
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setPaymentMethod("credit_payment");
+              }}
+              className="flex flex-row items-center"
+            >
+              <View
+                className={`rounded-full p-2 border-2 ${
+                  paymentMethod == "credit_payment"
+                    ? "bg-green-500 border-green-500"
+                    : "border-green-900"
+                }`}
+              ></View>
+              <View className="ml-1">
+                <Text className="text-gray-700 font-medium text-sm">
+                  Credit
+                </Text>
+                <Text className="text-gray-700 font-medium text-sm">
+                  Payment
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        ""
+      )}
+      {/* amount */}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
@@ -143,6 +243,7 @@ export default function Transaction() {
           />
         </View>
       </KeyboardAvoidingView>
+      {/* categories */}
       <View className="mx-4 mt-4">
         <Text className="text-lg mb-2">
           {transactionType == "expense" ? "Category" : "Source"}
@@ -157,6 +258,7 @@ export default function Transaction() {
           }
         />
       </View>
+      {/* description */}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
@@ -171,6 +273,7 @@ export default function Transaction() {
           />
         </View>
       </KeyboardAvoidingView>
+      {/* save */}
       <TouchableOpacity
         className="bg-green-400 rounded-full mx-4 p-2 items-center mt-24"
         onPress={handleSave}

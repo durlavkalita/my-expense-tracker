@@ -1,6 +1,7 @@
 import ProgressBar from "@/components/ProgressBar";
 import { icons } from "@/constants";
 import {
+  formatDateToHumanReadable,
   getCurrentDate,
   getCurrentMonthForQuery,
   getCurrentMonthYear,
@@ -160,7 +161,9 @@ const RenderItemIncome = ({ item }: { item: Income }) => (
         />
         <Text className="">{item.amount}</Text>
       </View>
-      <Text className="text-xs text-gray-500">{item.date}</Text>
+      <Text className="text-xs text-gray-500">
+        {formatDateToHumanReadable(item.date)}
+      </Text>
     </View>
   </View>
 );
@@ -193,7 +196,9 @@ const RenderItemExpense = ({ item }: { item: Expense }) => (
         />
         <Text className="">{item.amount}</Text>
       </View>
-      <Text className="text-xs text-gray-500">{item.date}</Text>
+      <Text className="text-xs text-gray-500">
+        {formatDateToHumanReadable(item.date)}
+      </Text>
     </View>
   </View>
 );

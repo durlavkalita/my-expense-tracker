@@ -48,3 +48,11 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Todo
+
+- [ ] Take account of credit payment and purchase in balance
+- [ ] Finance report data generation and export option
+- [ ] Visualize income and expenses with charts
+- [ ] Notification system for reminder + other things
+- [ ] Dark mode
