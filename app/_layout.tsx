@@ -41,19 +41,20 @@ export default function RootLayout() {
 }
 
 async function migrateDbIfNeeded(db: SQLiteDatabase) {
-  const DATABASE_VERSION = 1; // increment this on new changes
+  const DATABASE_VERSION = 2; // increment this on new changes
 
   // Get the current version
   const user_version = await db.getFirstAsync<{ user_version: number }>(
     "PRAGMA user_version"
   );
   const currentDbVersion = user_version?.user_version || 0;
+  // console.log(currentDbVersion);
 
   if (currentDbVersion >= DATABASE_VERSION) {
     return;
   }
 
-  // Migration 1: Create initial tables if they don't exist
+  // Create initial tables if they don't exist
   if (currentDbVersion == 0) {
     await db.execAsync(`
       PRAGMA journal_mode = 'wal';
@@ -72,6 +73,14 @@ async function migrateDbIfNeeded(db: SQLiteDatabase) {
         date TEXT NOT NULL,
         description TEXT NOT NULL
       );
+    `);
+  }
+
+  // Migration 1: Add payment_method in expenses table
+  if (currentDbVersion == 1) {
+    await db.execAsync(`
+      ALTER TABLE expenses
+      ADD COLUMN payment_method TEXT DEFAULT 'cash';
     `);
   }
 
