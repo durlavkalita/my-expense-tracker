@@ -119,7 +119,7 @@ export default function Transaction() {
   );
 
   return (
-    <ScrollView className="my-8">
+    <ScrollView className="mx-2 mt-4">
       {/* expense or income */}
       <View className="flex flex-row justify-around items-center mb-4">
         <TouchableOpacity onPress={() => setTransactionType("expense")}>
@@ -275,7 +275,7 @@ export default function Transaction() {
       </KeyboardAvoidingView>
       {/* save */}
       <TouchableOpacity
-        className="bg-green-400 rounded-full mx-4 p-2 items-center mt-24"
+        className="bg-green-400 rounded-full mx-4 p-2 items-center mt-16"
         onPress={handleSave}
       >
         <Text className="text-white font-bold text-2xl">Save</Text>
