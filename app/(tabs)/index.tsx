@@ -1,5 +1,5 @@
 import ProgressBar from "@/components/ProgressBar";
-import { icons } from "@/constants";
+import { icons, iconsMap } from "@/constants";
 import {
   formatDateToHumanReadable,
   getCurrentDate,
@@ -137,7 +137,7 @@ const RenderItemIncome = ({ item }: { item: Income }) => (
   <View className="flex flex-row items-center justify-between py-4">
     <View className="flex flex-row items-center">
       <Image
-        source={icons.grocery}
+        source={iconsMap[item.source]}
         className="w-8 h-8"
         alt={item.description}
         resizeMode="contain"
@@ -172,7 +172,7 @@ const RenderItemExpense = ({ item }: { item: Expense }) => (
   <View className="flex flex-row items-center justify-between py-4">
     <View className="flex flex-row items-center">
       <Image
-        source={icons.grocery}
+        source={iconsMap[item.category]}
         className="w-8 h-8"
         alt={item.description}
         resizeMode="contain"

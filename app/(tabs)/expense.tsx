@@ -7,7 +7,7 @@ import {
   RefreshControl,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
-import { dummyData, icons, images } from "@/constants";
+import { dummyData, icons, iconsMap, images } from "@/constants";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
 import { formatDateToHumanReadable } from "@/lib/utility";
@@ -16,13 +16,12 @@ export default function expense() {
   const db = useSQLiteContext();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [query, setQuery] = useState<"all" | "month" | "week">("month");
+  const [query, setQuery] = useState<"all" | "month" | "week">("week");
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-
+    setQuery("week");
     fetchExpenses(query);
-
     setRefreshing(false);
   }, []);
 
@@ -145,7 +144,7 @@ const RenderItem = ({ item, index }: { item: Expense; index: number }) => {
       >
         <View className="flex flex-row items-center">
           <Image
-            source={icons.grocery}
+            source={iconsMap[item.category]}
             className="w-8 h-8"
             alt={item.description}
             resizeMode="contain"

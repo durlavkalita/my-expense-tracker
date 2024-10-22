@@ -7,7 +7,7 @@ import {
   RefreshControl,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
-import { dummyData, icons, images } from "@/constants";
+import { dummyData, icons, iconsMap, images } from "@/constants";
 import { useSQLiteContext } from "expo-sqlite";
 import {
   formatDateToHumanReadable,
@@ -19,13 +19,12 @@ export default function income() {
   const db = useSQLiteContext();
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [query, setQuery] = useState<"all" | "month" | "week">("month");
+  const [query, setQuery] = useState<"all" | "month" | "week">("week");
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-
+    setQuery("week");
     fetchIncomes(query);
-
     setRefreshing(false);
   }, []);
 
@@ -147,7 +146,7 @@ const RenderItem = ({ item, index }: { item: Income; index: number }) => {
       >
         <View className="flex flex-row items-center">
           <Image
-            source={icons.grocery}
+            source={iconsMap[item.source]}
             className="w-8 h-8"
             alt={item.description}
             resizeMode="contain"

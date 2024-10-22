@@ -33,8 +33,9 @@ export default function Transaction() {
   }
 
   function getCurrentDateTimeISO() {
-    const now = new Date();
-    return now.toISOString().slice(0, 19); // 'YYYY-MM-DDTHH:MM:SS'
+    const tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
+    const localISOTime = new Date(Date.now() - tzoffset).toISOString();
+    return localISOTime.slice(0, 19); // 'YYYY-MM-DDTHH:MM:SS'
   }
 
   async function handleSave() {
