@@ -85,3 +85,9 @@ export function formatDateToHumanReadable(dateString: string): string {
   // Construct the human-readable date string
   return `${day} ${month}, ${formattedHours}:${formattedMinutes} ${ampm}`;
 }
+
+export function getCurrentDateTimeISO() {
+  const tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
+  const localISOTime = new Date(Date.now() - tzoffset).toISOString();
+  return localISOTime.slice(0, 19); // 'YYYY-MM-DDTHH:MM:SS'
+}

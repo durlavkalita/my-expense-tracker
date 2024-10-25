@@ -1,4 +1,5 @@
 import { convertToISOFormat } from "@/lib/utility";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -8,6 +9,8 @@ import "react-native-reanimated";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -26,16 +29,21 @@ export default function RootLayout() {
 
   return (
     <SQLiteProvider databaseName="finance.db" onInit={migrateDbIfNeeded}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="transaction" options={{ title: "Add" }} />
-        <Stack.Screen
-          name="expense/[id]"
-          options={{ title: "Expense Record" }}
-        />
-        <Stack.Screen name="income/[id]" options={{ title: "Income Record" }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      <QueryClientProvider client={queryClient}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="transaction" options={{ title: "Add" }} />
+          <Stack.Screen
+            name="expense/[id]"
+            options={{ title: "Expense Record" }}
+          />
+          <Stack.Screen
+            name="income/[id]"
+            options={{ title: "Income Record" }}
+          />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+      </QueryClientProvider>
     </SQLiteProvider>
   );
 }

@@ -1,5 +1,8 @@
+import { ExpenseItem } from "@/components/ExpenseItem";
+import { IncomeItem } from "@/components/IncomeItem";
 import ProgressBar from "@/components/ProgressBar";
 import { icons, iconsMap } from "@/constants";
+import { fetchExpenses, fetchIncomes } from "@/lib/queries";
 import {
   formatDateToHumanReadable,
   getCurrentDate,
@@ -7,16 +10,16 @@ import {
   getCurrentMonthYear,
   humanReadableAmount,
 } from "@/lib/utility";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Text,
   TouchableOpacity,
   View,
   Image,
-  FlatList,
   ScrollView,
   RefreshControl,
 } from "react-native";
@@ -24,46 +27,43 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const db = useSQLiteContext();
-  const [incomes, setIncomes] = useState<Income[]>();
-  const [expenses, setExpenses] = useState<Expense[]>();
-  const [monthlyIncome, setMonthlyIncome] = useState(0);
-  const [monthlyExpense, setMonthlyExpense] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+
+  const [expensesQuery, incomesQuery] = useQueries({
+    queries: [
+      {
+        queryKey: ["expenses"],
+        queryFn: () => fetchExpenses(db),
+      },
+      {
+        queryKey: ["incomes"],
+        queryFn: () => fetchIncomes(db),
+      },
+    ],
+  });
+
+  const monthlyExpense = useMemo(() => {
+    if (!expensesQuery.isSuccess) return 0;
+    return expensesQuery.data.reduce(
+      (sum, expense) => sum + Number(expense.amount),
+      0
+    );
+  }, [expensesQuery.data]);
+
+  const monthlyIncome = useMemo(() => {
+    if (!incomesQuery.isSuccess) return 0;
+    return incomesQuery.data.reduce(
+      (sum, income) => sum + Number(income.amount),
+      0
+    );
+  }, [incomesQuery.data]);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-
-    fetchDataFromDB();
-
+    Promise.all([expensesQuery.refetch(), incomesQuery.refetch()]);
     setRefreshing(false);
   }, []);
-  const fetchDataFromDB = async () => {
-    const result = await db.getAllAsync<Income>(
-      `SELECT * FROM incomes WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}' ORDER BY date DESC`
-    );
-    const result1 = await db.getAllAsync<Expense>(
-      `SELECT * FROM expenses WHERE strftime('%m', date) = '${getCurrentMonthForQuery()}' ORDER BY date DESC`
-    );
-    setIncomes(result);
-    setExpenses(result1);
-    let totalIncome = 0;
-    let totalExpense = 0;
-    for (let index = 0; index < result.length; index++) {
-      const element = result[index];
-      totalIncome = totalIncome + Number(element.amount);
-    }
-    setMonthlyIncome(totalIncome);
-    for (let index = 0; index < result1.length; index++) {
-      const element = result1[index];
-      totalExpense += Number(element.amount);
-    }
-    setMonthlyExpense(totalExpense);
-  };
-  useEffect(() => {
-    async function setup() {
-      fetchDataFromDB();
-    }
-    setup();
-  }, []);
+
   return (
     <SafeAreaView>
       <ScrollView
@@ -85,27 +85,27 @@ export default function HomeScreen() {
         </View>
         <View className="px-4 pt-2">
           <View className="flex flex-row justify-between items-center">
-            <Text className="font-bold text-lg">Income</Text>
-            <Text className="text-lg font-bold">
-              {humanReadableAmount(monthlyIncome)}
-            </Text>
-          </View>
-          <View className="">
-            {incomes?.slice(0, 3).map((item) => (
-              <RenderItemIncome item={item} key={item.id} />
-            ))}
-          </View>
-        </View>
-        <View className="px-4 pt-2">
-          <View className="flex flex-row justify-between items-center">
             <Text className="font-bold text-lg">Expenses</Text>
             <Text className="text-lg font-bold">
               {humanReadableAmount(monthlyExpense)}
             </Text>
           </View>
           <View className="">
-            {expenses?.slice(0, 3).map((item) => (
-              <RenderItemExpense item={item} key={item.id} />
+            {expensesQuery.data?.slice(0, 3).map((item, index) => (
+              <ExpenseItem item={item} index={index} key={index} />
+            ))}
+          </View>
+        </View>
+        <View className="px-4 pt-2">
+          <View className="flex flex-row justify-between items-center">
+            <Text className="font-bold text-lg">Income</Text>
+            <Text className="text-lg font-bold">
+              {humanReadableAmount(monthlyIncome)}
+            </Text>
+          </View>
+          <View className="">
+            {incomesQuery.data?.slice(0, 3).map((item, index) => (
+              <IncomeItem item={item} index={index} key={index} />
             ))}
           </View>
         </View>
@@ -132,73 +132,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
-
-const RenderItemIncome = ({ item }: { item: Income }) => (
-  <View className="flex flex-row items-center justify-between py-4">
-    <View className="flex flex-row items-center">
-      <Image
-        source={iconsMap[item.source]}
-        className="w-8 h-8"
-        alt={item.description}
-        resizeMode="contain"
-      />
-      <View className="flex ml-4">
-        <Text className="">
-          {item.description.length < 25
-            ? item.description
-            : `${item.description.slice(0, 25)}...`}
-        </Text>
-        <Text className="text-gray-500 text-sm">{item.source}</Text>
-      </View>
-    </View>
-    <View className="flex items-end">
-      <View className="flex flex-row items-center">
-        <Image
-          source={icons.rupee}
-          className="w-2 h-2"
-          alt="grocery"
-          resizeMode="contain"
-        />
-        <Text className="">{item.amount}</Text>
-      </View>
-      <Text className="text-xs text-gray-500">
-        {formatDateToHumanReadable(item.date)}
-      </Text>
-    </View>
-  </View>
-);
-
-const RenderItemExpense = ({ item }: { item: Expense }) => (
-  <View className="flex flex-row items-center justify-between py-4">
-    <View className="flex flex-row items-center">
-      <Image
-        source={iconsMap[item.category]}
-        className="w-8 h-8"
-        alt={item.description}
-        resizeMode="contain"
-      />
-      <View className="flex ml-4">
-        <Text className="">
-          {item.description.length < 25
-            ? item.description
-            : `${item.description.slice(0, 25)}...`}
-        </Text>
-        <Text className="text-gray-500 text-sm">{item.category}</Text>
-      </View>
-    </View>
-    <View className="flex items-end">
-      <View className="flex flex-row items-center">
-        <Image
-          source={icons.rupee}
-          className="w-2 h-2"
-          alt="grocery"
-          resizeMode="contain"
-        />
-        <Text className="">{item.amount}</Text>
-      </View>
-      <Text className="text-xs text-gray-500">
-        {formatDateToHumanReadable(item.date)}
-      </Text>
-    </View>
-  </View>
-);

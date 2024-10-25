@@ -16,9 +16,12 @@ import { useSQLiteContext } from "expo-sqlite";
 import { getCurrentDate } from "@/lib/utility";
 import { expenseCategory, incomeSource } from "@/constants";
 import { router } from "expo-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createExpense, createIncome } from "@/lib/queries";
 
 export default function Transaction() {
   const db = useSQLiteContext();
+  const queryClient = useQueryClient();
   const [transactionType, setTransactionType] = useState("expense");
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
@@ -27,26 +30,22 @@ export default function Transaction() {
     "cash" | "upi" | "credit_purchase" | "credit_payment"
   >("cash");
 
+  const mutation = useMutation({
+    mutationFn: () => {
+      return handleSave();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["incomes"] });
+    },
+  });
+
   function handleAmountChanged(text: any) {
     const numericValue = text.replace(/[^0-9]/g, "");
     setAmount(numericValue);
   }
 
-  function getCurrentDateTimeISO() {
-    const tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
-    const localISOTime = new Date(Date.now() - tzoffset).toISOString();
-    return localISOTime.slice(0, 19); // 'YYYY-MM-DDTHH:MM:SS'
-  }
-
   async function handleSave() {
-    console.log(
-      transactionType,
-      paymentMethod,
-      category,
-      amount,
-      getCurrentDateTimeISO(),
-      description
-    );
     if (category == "") {
       Alert.alert("Select a category or source.");
       return;
@@ -61,25 +60,10 @@ export default function Transaction() {
     }
     try {
       if (transactionType == "expense") {
-        const r = await db.runAsync(
-          "INSERT INTO expenses (category, amount, date, description, payment_method) VALUES (?, ?, ?, ?, ?)",
-          category,
-          amount,
-          getCurrentDateTimeISO(),
-          description,
-          paymentMethod
-        );
-        console.log(r);
+        await createExpense(db, category, amount, description, paymentMethod);
         router.back();
       } else {
-        const r = await db.runAsync(
-          "INSERT INTO incomes (source, amount, date, description) VALUES (?, ?, ?, ?)",
-          category,
-          amount,
-          getCurrentDateTimeISO(),
-          description
-        );
-        console.log(r);
+        await createIncome(db, category, amount, description);
         router.back();
       }
     } catch (error) {
@@ -277,7 +261,9 @@ export default function Transaction() {
       {/* save */}
       <TouchableOpacity
         className="bg-green-400 rounded-full mx-4 p-2 items-center mt-16"
-        onPress={handleSave}
+        onPress={() => {
+          mutation.mutate();
+        }}
       >
         <Text className="text-white font-bold text-2xl">Save</Text>
       </TouchableOpacity>
