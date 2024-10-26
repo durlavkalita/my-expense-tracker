@@ -1,46 +1,68 @@
-import {
-  View,
-  Image,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
-  Keyboard,
-  TextInput,
-  FlatList,
-  ImageSourcePropType,
-  Alert,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
-} from "react-native";
-import React, { useEffect, useState } from "react";
-import { useSQLiteContext } from "expo-sqlite";
-import { router, useLocalSearchParams } from "expo-router";
+import { CategoryScroll } from "@/components/CategoryScroll";
 import { expenseCategory } from "@/constants";
+import {
+  deleteExpenseById,
+  fetchExpenseById,
+  updateExpenseById,
+} from "@/lib/queries";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { router, useLocalSearchParams } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useState } from "react";
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function SingleExpense() {
   const { id } = useLocalSearchParams();
   const uid = typeof id == "object" ? id[0] : id;
   const db = useSQLiteContext();
-  const [expense, setExpense] = useState<Expense[]>([]);
+  const queryClient = useQueryClient();
+
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  useEffect(() => {
-    async function setup() {
-      const result = await db.getAllAsync<Expense>(
-        `SELECT * FROM expenses WHERE id = ${uid}`
-      );
-      setExpense(result);
-      setCategory(result[0].category);
-      setAmount(result[0].amount);
-      setDescription(result[0].description);
-    }
-    setup();
-  }, []);
+
+  const expenseQuery = useQuery({
+    queryKey: ["expenses", uid],
+    queryFn: () => fetchExpense(uid),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: () => {
+      return handleUpdate();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => {
+      return handleDelete();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    },
+  });
+
+  async function fetchExpense(id: string) {
+    const result = await fetchExpenseById(db, id);
+    setCategory(result!.category);
+    setAmount(result!.amount);
+    setDescription(result!.description);
+    return result;
+  }
   async function handleDelete() {
-    const r = await db.runAsync(`DELETE FROM expenses WHERE id = ${uid}`);
-    console.log(r);
+    await deleteExpenseById(db, uid);
     router.push("/(tabs)/expense");
   }
   async function handleUpdate() {
@@ -56,14 +78,7 @@ export default function SingleExpense() {
       Alert.alert("Provide a description.");
       return;
     }
-    const r = await db.runAsync(
-      "UPDATE expenses SET amount = ?, category = ?, description = ? WHERE id = ?",
-      amount,
-      category,
-      description,
-      uid
-    );
-    console.log(r);
+    updateExpenseById(db, amount, category, description, uid);
     router.push("/(tabs)/expense");
   }
   function handleAmountChanged(text: any) {
@@ -71,36 +86,6 @@ export default function SingleExpense() {
     setAmount(numericValue);
   }
 
-  function handleCategorySelect(name: string) {
-    setCategory(name);
-  }
-
-  const showCategory = ({
-    name,
-    icon,
-  }: {
-    name: string;
-    icon: ImageSourcePropType;
-  }) => (
-    <View
-      className={`shadow-lg p-1 w-24 mr-1 ${
-        name == category ? "border-2 border-green-400" : ""
-      }`}
-    >
-      <TouchableOpacity
-        className="items-center justify-center"
-        onPress={() => handleCategorySelect(name)}
-      >
-        <Image
-          source={icon}
-          alt={name}
-          resizeMode="contain"
-          className="w-8 h-8"
-        />
-        <Text className="text-gray-700 text-xs mt-1">{name}</Text>
-      </TouchableOpacity>
-    </View>
-  );
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -120,14 +105,10 @@ export default function SingleExpense() {
 
         <View className="mx-4 mt-4">
           <Text className="text-lg mb-2">Category</Text>
-          <FlatList
-            horizontal={true}
+          <CategoryScroll
             data={expenseCategory}
-            keyExtractor={(item) => item.name}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) =>
-              showCategory({ name: item.name, icon: item.icon })
-            }
+            currentCategory={expenseQuery.data?.category!}
+            updateCategorySelect={setCategory}
           />
         </View>
 
@@ -147,13 +128,17 @@ export default function SingleExpense() {
         <View className="flex flex-row justify-between mx-4 mt-24">
           <TouchableOpacity
             className="bg-red-400 rounded-full p-2 items-center w-1/2"
-            onPress={handleDelete}
+            onPress={() => {
+              deleteMutation.mutate();
+            }}
           >
             <Text className="text-white font-bold text-2xl">Delete</Text>
           </TouchableOpacity>
           <TouchableOpacity
             className="bg-green-400 rounded-full p-2 items-center w-1/2"
-            onPress={handleUpdate}
+            onPress={() => {
+              updateMutation.mutate();
+            }}
           >
             <Text className="text-white font-bold text-2xl">Update</Text>
           </TouchableOpacity>

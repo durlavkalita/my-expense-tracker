@@ -1,7 +1,7 @@
 import { icons, iconsMap } from "@/constants";
 import { formatDateToHumanReadable } from "@/lib/utility";
 import { router } from "expo-router";
-import { TouchableOpacity, View, Image, Text } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 export const IncomeItem = ({
   item,

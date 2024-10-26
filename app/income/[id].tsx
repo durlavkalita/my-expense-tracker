@@ -1,51 +1,73 @@
+import { CategoryScroll } from "@/components/CategoryScroll";
+import { incomeSource } from "@/constants";
 import {
-  View,
-  Image,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
-  Keyboard,
-  TextInput,
-  FlatList,
-  ImageSourcePropType,
+  deleteIncomeById,
+  fetchIncomeById,
+  updateIncomeById,
+} from "@/lib/queries";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { router, useLocalSearchParams } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useState } from "react";
+import {
   Alert,
-  ScrollView,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import { useSQLiteContext } from "expo-sqlite";
-import { router, useLocalSearchParams } from "expo-router";
-import { incomeSource } from "@/constants";
 
 export default function SingleExpense() {
   const { id } = useLocalSearchParams();
   const uid = typeof id == "object" ? id[0] : id;
   const db = useSQLiteContext();
-  const [income, setIncome] = useState<Income[]>([]);
+  const queryClient = useQueryClient();
+
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  useEffect(() => {
-    async function setup() {
-      const result = await db.getAllAsync<Income>(
-        `SELECT * FROM incomes WHERE id = ${uid}`
-      );
-      setIncome(result);
-      setCategory(result[0].source);
-      setAmount(result[0].amount);
-      setDescription(result[0].description);
-    }
-    setup();
-  }, []);
+
+  const incomeQuery = useQuery({
+    queryKey: ["incomes", uid],
+    queryFn: () => fetchIncome(uid),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: () => {
+      return handleUpdate();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => {
+      return handleDelete();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    },
+  });
+
+  async function fetchIncome(id: string) {
+    const result = await fetchIncomeById(db, id);
+    setCategory(result!.source);
+    setAmount(result!.amount);
+    setDescription(result!.description);
+    return result;
+  }
   async function handleDelete() {
-    const r = await db.runAsync(`DELETE FROM incomes WHERE id = ${uid}`);
-    console.log(r);
+    await deleteIncomeById(db, uid);
     router.push("/(tabs)/income");
   }
   async function handleUpdate() {
     if (category == "") {
-      Alert.alert("Select a source.");
+      Alert.alert("Select a category.");
       return;
     }
     if (amount == "" || amount == "0") {
@@ -56,51 +78,13 @@ export default function SingleExpense() {
       Alert.alert("Provide a description.");
       return;
     }
-    const r = await db.runAsync(
-      "UPDATE incomes SET amount = ?, source = ?, description = ? WHERE id = ?",
-      amount,
-      category,
-      description,
-      uid
-    );
-    console.log(r);
+    updateIncomeById(db, amount, category, description, uid);
     router.push("/(tabs)/income");
   }
   function handleAmountChanged(text: any) {
     const numericValue = text.replace(/[^0-9]/g, "");
     setAmount(numericValue);
   }
-
-  function handleCategorySelect(name: string) {
-    setCategory(name);
-  }
-
-  const showCategory = ({
-    name,
-    icon,
-  }: {
-    name: string;
-    icon: ImageSourcePropType;
-  }) => (
-    <View
-      className={`shadow-lg p-1 w-24 mr-1 ${
-        name == category ? "border-2 border-green-400" : ""
-      }`}
-    >
-      <TouchableOpacity
-        className="items-center justify-center"
-        onPress={() => handleCategorySelect(name)}
-      >
-        <Image
-          source={icon}
-          alt={name}
-          resizeMode="contain"
-          className="w-8 h-8"
-        />
-        <Text className="text-gray-700 text-xs mt-1">{name}</Text>
-      </TouchableOpacity>
-    </View>
-  );
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -119,15 +103,11 @@ export default function SingleExpense() {
         </TouchableOpacity>
 
         <View className="mx-4 mt-4">
-          <Text className="text-lg mb-2">Category</Text>
-          <FlatList
-            horizontal={true}
+          <Text className="text-lg mb-2">Source</Text>
+          <CategoryScroll
             data={incomeSource}
-            keyExtractor={(item) => item.name}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) =>
-              showCategory({ name: item.name, icon: item.icon })
-            }
+            currentCategory={incomeQuery.data?.source!}
+            updateCategorySelect={setCategory}
           />
         </View>
 
@@ -147,13 +127,17 @@ export default function SingleExpense() {
         <View className="flex flex-row justify-between mx-4 mt-24">
           <TouchableOpacity
             className="bg-red-400 rounded-full p-2 items-center w-1/2"
-            onPress={handleDelete}
+            onPress={() => {
+              deleteMutation.mutate();
+            }}
           >
             <Text className="text-white font-bold text-2xl">Delete</Text>
           </TouchableOpacity>
           <TouchableOpacity
             className="bg-green-400 rounded-full p-2 items-center w-1/2"
-            onPress={handleUpdate}
+            onPress={() => {
+              updateMutation.mutate();
+            }}
           >
             <Text className="text-white font-bold text-2xl">Update</Text>
           </TouchableOpacity>

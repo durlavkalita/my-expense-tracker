@@ -1,23 +1,22 @@
+import { expenseCategory, incomeSource } from "@/constants";
+import { createExpense, createIncome } from "@/lib/queries";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { router } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableOpacity,
+  Alert,
   FlatList,
   Image,
   ImageSourcePropType,
-  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import React, { useState } from "react";
-import { useSQLiteContext } from "expo-sqlite";
-import { getCurrentDate } from "@/lib/utility";
-import { expenseCategory, incomeSource } from "@/constants";
-import { router } from "expo-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createExpense, createIncome } from "@/lib/queries";
 
 export default function Transaction() {
   const db = useSQLiteContext();

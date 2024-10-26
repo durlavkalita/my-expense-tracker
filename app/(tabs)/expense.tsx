@@ -1,19 +1,19 @@
+import { ExpenseItem } from "@/components/ExpenseItem";
+import { images } from "@/constants";
+import { fetchExpenses } from "@/lib/queries";
+import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useCallback, useState } from "react";
 import {
-  View,
-  Text,
+  ActivityIndicator,
   FlatList,
   Image,
-  TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import React, { useCallback, useState } from "react";
-import { images } from "@/constants";
-import { useSQLiteContext } from "expo-sqlite";
-import { router } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
-import { fetchExpenses } from "@/lib/queries";
-import { ExpenseItem } from "@/components/ExpenseItem";
 
 export default function expense() {
   const db = useSQLiteContext();

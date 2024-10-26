@@ -1,27 +1,21 @@
 import { ExpenseItem } from "@/components/ExpenseItem";
 import { IncomeItem } from "@/components/IncomeItem";
 import ProgressBar from "@/components/ProgressBar";
-import { icons, iconsMap } from "@/constants";
+import { icons } from "@/constants";
 import { fetchExpenses, fetchIncomes } from "@/lib/queries";
-import {
-  formatDateToHumanReadable,
-  getCurrentDate,
-  getCurrentMonthForQuery,
-  getCurrentMonthYear,
-  humanReadableAmount,
-} from "@/lib/utility";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { getCurrentMonthYear, humanReadableAmount } from "@/lib/utility";
+import { useQueries } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
+  Image,
+  RefreshControl,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
-  Image,
-  ScrollView,
-  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

@@ -49,6 +49,7 @@ export async function fetchIncomes(
   const result = await db.getAllAsync<Income>(query);
   return result;
 }
+
 export async function createExpense(
   db: SQLiteDatabase,
   category: string,
@@ -79,6 +80,64 @@ export async function createIncome(
     amount,
     getCurrentDateTimeISO(),
     description
+  );
+  console.log(r);
+}
+
+export async function fetchExpenseById(db: SQLiteDatabase, uid: string) {
+  const result = await db.getFirstAsync<Expense>(
+    `SELECT * FROM expenses WHERE id = ${uid}`
+  );
+  return result;
+}
+
+export async function fetchIncomeById(db: SQLiteDatabase, uid: string) {
+  const result = await db.getFirstAsync<Income>(
+    `SELECT * FROM incomes WHERE id = ${uid}`
+  );
+  return result;
+}
+
+export async function deleteExpenseById(db: SQLiteDatabase, uid: string) {
+  const r = await db.runAsync(`DELETE FROM expenses WHERE id = ${uid}`);
+  console.log(r);
+}
+
+export async function deleteIncomeById(db: SQLiteDatabase, uid: string) {
+  const r = await db.runAsync(`DELETE FROM incomes WHERE id = ${uid}`);
+  console.log(r);
+}
+
+export async function updateExpenseById(
+  db: SQLiteDatabase,
+  amount: string,
+  category: string,
+  description: string,
+  uid: string
+) {
+  const r = await db.runAsync(
+    "UPDATE expenses SET amount = ?, category = ?, description = ? WHERE id = ?",
+    amount,
+    category,
+    description,
+    uid
+  );
+  console.log(r);
+}
+
+export async function updateIncomeById(
+  db: SQLiteDatabase,
+  amount: string,
+  source: string,
+  description: string,
+  uid: string
+) {
+  const r = await db.runAsync(
+    "UPDATE incomes SET amount = ?, source = ?, description = ? WHERE id = ?",
+    amount,
+    source,
+    description,
+    uid
   );
   console.log(r);
 }
